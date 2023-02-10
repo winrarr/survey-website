@@ -1,12 +1,12 @@
 package models
 
 type User struct {
-	Username string
-	Password string
-	Name     string
+	Username string `binding:"required"`
+	Password string `binding:"required"`
+	Name     string `binding:"required"`
 }
 
 type Login struct {
-	Username string
-	Password string
+	Username string `binding:"required"`
+	Password string `binding:"required"`
 }

@@ -3,13 +3,13 @@ package models
 import "go.mongodb.org/mongo-driver/bson/primitive"
 
 type Survey struct {
-	Description string
-	Created     primitive.DateTime
-	Questions   []Question
+	Description string             `binding:"required"`
+	Created     primitive.DateTime `binding:"required"`
+	Questions   []Question         `binding:"required"`
 }
 
 type Question struct {
-	Text         string
-	QuestionType string
-	Choices      []string
+	Text         string   `binding:"required"`
+	QuestionType string   `binding:"required"`
+	Choices      []string `binding:"required"`
 }

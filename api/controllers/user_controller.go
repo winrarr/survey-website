@@ -20,7 +20,6 @@ func CreateUser(c *gin.Context) {
 
 	if err := c.BindJSON(&user); err != nil {
 		c.AbortWithStatus(http.StatusBadRequest)
-		println("hej1")
 		return
 	}
 
@@ -30,7 +29,6 @@ func CreateUser(c *gin.Context) {
 	_, err := userCollection.InsertOne(ctx, user)
 	if err != nil {
 		c.AbortWithStatus(http.StatusInternalServerError)
-		println("hej3")
 		return
 	}
 
@@ -42,7 +40,6 @@ func Login(c *gin.Context) {
 
 	if err := c.BindJSON(&login); err != nil {
 		c.AbortWithStatus(http.StatusUnauthorized)
-		println("hej1")
 		return
 	}
 
@@ -53,7 +50,6 @@ func Login(c *gin.Context) {
 	err := userCollection.FindOne(ctx, bson.M{"username": login.Username}).Decode(&user)
 	if err != nil {
 		c.AbortWithStatus(http.StatusUnauthorized)
-		println("hej2")
 		return
 	}
 
@@ -69,7 +65,6 @@ func GetAllUsers(c *gin.Context) {
 	results, err := userCollection.Find(ctx, bson.M{})
 	if err != nil {
 		c.AbortWithStatus(http.StatusInternalServerError)
-		println("hej1")
 		return
 	}
 
@@ -78,7 +73,6 @@ func GetAllUsers(c *gin.Context) {
 		var user models.User
 		if err = results.Decode(&user); err != nil {
 			c.Copy().AbortWithStatus(http.StatusInternalServerError)
-			println("hej2")
 			return
 		}
 
