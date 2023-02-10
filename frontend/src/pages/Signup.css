@@ -1,0 +1,14 @@
+.container {
+  padding: 30px;
+  display: flex;
+  justify-content: center;
+}
+
+.login-container {
+  padding: 30px;
+  border: 1px solid red;
+}
+
+.login-text {
+  color: blue;
+}
