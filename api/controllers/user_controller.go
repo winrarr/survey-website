@@ -4,7 +4,10 @@ import (
 	"api/auth"
 	"api/configs"
 	"api/models"
+	"bytes"
 	"context"
+	"io"
+	"io/ioutil"
 	"net/http"
 	"time"
 
@@ -15,7 +18,23 @@ import (
 
 var userCollection *mongo.Collection = configs.GetCollection(configs.DB, "users")
 
+func init() {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	userCollection.Drop(ctx)
+}
+
 func CreateUser(c *gin.Context) {
+	body, _ := ioutil.ReadAll(c.Request.Body)
+	println(string(body))
+	c.Request.Body = io.NopCloser(bytes.NewReader(body))
+
+	// user := models.User{
+	// 	Username: c.PostForm("username"),
+	// 	Password: c.PostForm("password"),
+	// 	Name:     c.PostForm("name"),
+	// }
+
 	var user models.User
 
 	if err := c.BindJSON(&user); err != nil {
