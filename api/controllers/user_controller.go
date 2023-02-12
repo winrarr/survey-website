@@ -4,16 +4,14 @@ import (
 	"api/auth"
 	"api/configs"
 	"api/models"
-	"bytes"
 	"context"
-	"io"
-	"io/ioutil"
 	"net/http"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
+	"golang.org/x/crypto/bcrypt"
 )
 
 var userCollection *mongo.Collection = configs.GetCollection(configs.DB, "users")
@@ -24,28 +22,25 @@ func init() {
 	userCollection.Drop(ctx)
 }
 
+// POST /signup
 func CreateUser(c *gin.Context) {
-	body, _ := ioutil.ReadAll(c.Request.Body)
-	println(string(body))
-	c.Request.Body = io.NopCloser(bytes.NewReader(body))
-
-	// user := models.User{
-	// 	Username: c.PostForm("username"),
-	// 	Password: c.PostForm("password"),
-	// 	Name:     c.PostForm("name"),
-	// }
-
 	var user models.User
-
-	if err := c.BindJSON(&user); err != nil {
+	if err := c.Bind(&user); err != nil {
 		c.AbortWithStatus(http.StatusBadRequest)
 		return
 	}
 
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+	if err != nil {
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+	user.Password = string(hashedPassword)
+
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	_, err := userCollection.InsertOne(ctx, user)
+	_, err = userCollection.InsertOne(ctx, user)
 	if err != nil {
 		c.AbortWithStatus(http.StatusInternalServerError)
 		return
@@ -54,10 +49,10 @@ func CreateUser(c *gin.Context) {
 	c.Status(http.StatusCreated)
 }
 
+// POST /login
 func Login(c *gin.Context) {
 	var login models.Login
-
-	if err := c.BindJSON(&login); err != nil {
+	if err := c.Bind(&login); err != nil {
 		c.AbortWithStatus(http.StatusUnauthorized)
 		return
 	}
@@ -72,9 +67,16 @@ func Login(c *gin.Context) {
 		return
 	}
 
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(login.Password))
+	if err != nil {
+		c.AbortWithStatus(http.StatusUnauthorized)
+		return
+	}
+
 	c.SetCookie("session_token", auth.NewSession(), 2, "/", "localhost", false, false)
 }
 
+// GET /users
 func GetAllUsers(c *gin.Context) {
 	var users []models.User
 
